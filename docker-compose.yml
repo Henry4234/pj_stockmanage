@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+
+  # ─── Flask 後端 API ────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: stockmanage_backend
+    restart: unless-stopped
+    environment:
+      FLASK_ENV: "${FLASK_ENV:-production}"
+      DB_HOST: host.docker.internal   # 連到宿主機的本機 SQL Server
+      DB_PORT: 1433
+      DB_NAME: "${DB_NAME:-StockManage}"
+      DB_USER: "${DB_USER}"
+      DB_PASSWORD: "${DB_SA_PASSWORD}"
+      SECRET_KEY: "${SECRET_KEY}"
+    ports:
+      - "5000:5000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Linux 相容（Windows Docker Desktop 已內建）
+    volumes:
+      - ./backend:/app
+    networks:
+      - stockmanage_net
+
+  # ─── 前端 Web (Nginx) ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: stockmanage_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - stockmanage_net
+
+# ─── 網路 ──────────────────────────────────────────────────────────
+networks:
+  stockmanage_net:
+    driver: bridge

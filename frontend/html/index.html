@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>庫存管理系統</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     登入畫面
+════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-cross">&#10010;</div>
+      <h1>庫存管理系統</h1>
+      <p>土城長庚醫院</p>
+    </div>
+
+    <div class="form-group">
+      <label for="user-select">使用者</label>
+      <select id="user-select" class="form-control">
+        <option value="">── 請選擇使用者 ──</option>
+      </select>
+    </div>
+
+    <button id="login-btn" class="btn btn-primary btn-full" disabled>
+      登&nbsp;&nbsp;入
+    </button>
+    <div id="login-msg" class="login-msg hidden"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     主系統
+════════════════════════════════════════ -->
+<div id="app" class="hidden">
+
+  <!-- 頂部導覽列 -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="sidebar-toggle" class="icon-btn" title="展開 / 收合選單">&#9776;</button>
+      <span class="app-title">&#10010; 庫存管理系統</span>
+    </div>
+    <div class="topbar-right">
+      <span id="topbar-user" class="topbar-user"></span>
+      <button id="logout-btn" class="btn btn-ghost-white">登出</button>
+    </div>
+  </header>
+
+  <!-- 主體佈局 -->
+  <div class="body-wrap">
+
+    <!-- 側邊欄 -->
+    <aside id="sidebar" class="sidebar">
+      <nav>
+        <a class="nav-item active" data-page="input" href="#">
+          <span class="nav-icon">&#128229;</span>
+          <span class="nav-label">UDI 掃碼作業</span>
+        </a>
+        <a class="nav-item" data-page="receive" href="#">
+          <span class="nav-icon">&#128230;</span>
+          <span class="nav-label">商品入庫</span>
+        </a>
+        <a class="nav-item" data-page="dashboard" href="#">
+          <span class="nav-icon">&#128202;</span>
+          <span class="nav-label">庫存總覽</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- 主內容區 -->
+    <main class="content">
+
+      <!-- ── 頁面：UDI 掃碼 ── -->
+      <div id="page-input" class="page active">
+        <div class="page-header">
+          <h2>UDI 掃碼作業</h2>
+          <span id="input-badge-user" class="badge-user"></span>
+        </div>
+
+        <div class="card">
+          <p class="card-label">掃描或輸入 UDI 條碼</p>
+          <div class="udi-row">
+            <input id="udi-input" class="udi-field" type="text"
+                   placeholder="請掃描條碼或手動輸入 UDI…" autocomplete="off" />
+            <button class="btn btn-secondary" disabled title="相機識別（開發中）">
+              &#128247; 相機
+            </button>
+          </div>
+          <p class="hint">支援 GS1-128 / HIBC 格式</p>
+        </div>
+
+        <div class="card">
+          <p class="card-label">作業類型</p>
+          <div class="tx-group">
+            <label class="tx-radio"><input type="radio" name="tx" value="issue" />出庫</label>
+            <label class="tx-radio"><input type="radio" name="tx" value="transfer" />移位</label>
+            <label class="tx-radio"><input type="radio" name="tx" value="unpack_out" />拆箱（出）</label>
+            <label class="tx-radio"><input type="radio" name="tx" value="unpack_in" />拆箱（入）</label>
+            <label class="tx-radio"><input type="radio" name="tx" value="return" />退回</label>
+            <label class="tx-radio"><input type="radio" name="tx" value="adjust" />盤點調整</label>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>數量</label>
+              <input id="tx-qty" type="number" class="form-control" value="1" min="1" />
+            </div>
+            <div class="form-group flex-2">
+              <label>備註</label>
+              <input id="tx-note" type="text" class="form-control" placeholder="選填" />
+            </div>
+          </div>
+          <button id="submit-btn" class="btn btn-primary" disabled>&#10003; 確認送出</button>
+        </div>
+
+        <div class="card">
+          <p class="card-label">本次作業紀錄</p>
+          <div id="tx-log" class="tx-log">
+            <p class="empty">尚無作業紀錄</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 頁面：商品入庫 ── -->
+      <div id="page-receive" class="page">
+        <div class="page-header">
+          <h2>商品入庫</h2>
+          <span id="receive-badge-user" class="badge-user"></span>
+        </div>
+
+        <!-- UDI 掃碼（自動帶入） -->
+        <div class="card">
+          <p class="card-label">掃描或輸入 UDI 條碼</p>
+          <div class="udi-row">
+            <input id="receive-udi" class="udi-field" type="text"
+                   placeholder="請掃描條碼或手動輸入 UDI…" autocomplete="off" />
+            <button class="btn btn-secondary" disabled title="相機識別（開發中）">
+              &#128247; 相機
+            </button>
+          </div>
+          <p class="hint">掃描後將自動帶入商品資訊（解析模組開發中）</p>
+        </div>
+
+        <!-- 入庫資訊表單 -->
+        <div class="card">
+          <p class="card-label">入庫資訊</p>
+
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label>商品 <span class="required">*</span></label>
+              <select id="receive-product" class="form-control">
+                <option value="">── 請選擇商品 ──</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>包裝層級</label>
+              <select id="receive-packaging" class="form-control">
+                <option value="">── 請選擇 ──</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>批號</label>
+              <input id="receive-lot" type="text" class="form-control" placeholder="Lot Number" />
+            </div>
+            <div class="form-group">
+              <label>有效期限</label>
+              <input id="receive-expiry" type="date" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label>序號</label>
+              <input id="receive-serial" type="text" class="form-control" placeholder="序號管控品才需填" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>數量 <span class="required">*</span></label>
+              <input id="receive-qty" type="number" class="form-control" value="1" min="1" />
+            </div>
+            <div class="form-group flex-2">
+              <label>入庫儲位 <span class="required">*</span></label>
+              <select id="receive-location" class="form-control">
+                <option value="">── 請選擇儲位 ──</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1rem">
+            <label>備註</label>
+            <input id="receive-remark" type="text" class="form-control" placeholder="選填" />
+          </div>
+
+          <button id="receive-submit-btn" class="btn btn-success" disabled>
+            &#10003; 確認入庫
+          </button>
+        </div>
+
+        <!-- 本次入庫紀錄 -->
+        <div class="card">
+          <p class="card-label">本次入庫紀錄</p>
+          <div id="receive-log" class="tx-log">
+            <p class="empty">尚無入庫紀錄</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 頁面：庫存總覽 ── -->
+      <div id="page-dashboard" class="page">
+        <div class="page-header">
+          <h2>庫存總覽</h2>
+          <button id="refresh-btn" class="btn btn-secondary btn-sm">&#8635; 重新整理</button>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-val" id="stat-products">—</div>
+            <div class="stat-lbl">品項數</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-containers">—</div>
+            <div class="stat-lbl">容器總數</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-val" id="stat-near-expiry">—</div>
+            <div class="stat-lbl">近效期 ≤ 90 天</div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-val" id="stat-expired">—</div>
+            <div class="stat-lbl">已過期</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filter-row">
+            <div class="form-group">
+              <label>商品篩選</label>
+              <select id="filter-product" class="form-control">
+                <option value="">全部商品</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>批號</label>
+              <input id="filter-lot" type="text" class="form-control" placeholder="批號關鍵字…" />
+            </div>
+            <div class="form-group">
+              <label>狀態</label>
+              <select id="filter-status" class="form-control">
+                <option value="">全部</option>
+                <option value="sealed" selected>未開封</option>
+                <option value="opened">已開封</option>
+                <option value="unpacked">已拆箱</option>
+              </select>
+            </div>
+            <button id="search-btn" class="btn btn-primary align-bottom">查詢</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>商品名稱</th>
+                  <th>Primary DI</th>
+                  <th>包裝層級</th>
+                  <th>批號</th>
+                  <th>有效期限</th>
+                  <th>序號</th>
+                  <th>數量</th>
+                  <th>儲位</th>
+                  <th>狀態</th>
+                </tr>
+              </thead>
+              <tbody id="inv-tbody">
+                <tr><td colspan="9" class="empty">請點選查詢以載入資料</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
